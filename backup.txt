@@ -1,0 +1,154 @@
+import requests
+from tkinter import *
+
+def run() :
+    # 로그인 데이터
+    loginData = {
+        "id":idEntry.get(),
+        "pass":pwEntry.get(),
+        "autoLogin":""
+    }
+    # 로그인 요청 URL
+    loginUrl = "https://daejin.unibus.kr/api/index.php?ctrl=Main&action=loginProc"
+
+    # 버스예약 요청 URL
+    reserveUrl = "https://daejin.unibus.kr/api/index.php?ctrl=BusReserve&action=reserveAppProc"
+
+    # 버스 리스트 url (노원하교)
+    busListDownUrl = "https://daejin.unibus.kr/api/index.php?ctrl=BusReserve&action=busList&dir=DOWN&lineGroupSeq=27"
+
+    # 버스 리스트 url (노원등교)
+    busListUpUrl = "https://daejin.unibus.kr/api/index.php?ctrl=BusReserve&action=busList&dir=UP&lineGroupSeq=28"
+
+    # 로그인
+    session = requests.Session()
+    response = session.post(loginUrl, json=loginData)
+    if "OK" in response.text :
+        print("로그인 성공")
+        print("응답코드 = " + str(response.status_code))
+        cookie = response.cookies.get_dict()
+
+        # 로그인후 Authorization을 가져오기
+        response_json = response.json()
+        token = response_json.get('data')
+        header = {
+            "Authorization": token
+        }
+        if token :
+            # 하교(노원) 버스리스트 가져오기
+            busDownResponse = session.get(busListDownUrl, cookies=cookie, headers=header)
+            if busDownResponse.status_code == 200:
+                downData = busDownResponse.json()
+                for data in downData['data']['busList'] :
+                    # 하교 버스 시간 설정
+                    if data['operateTime'] == downEntry.get():
+                        downBusSeq = (data['busSeq'])
+                        print(downBusSeq)
+            else:
+                print("하교 리스트 가져오기 실패~")
+
+            # 등교(노원) 버스리스트 가져오기
+            busUpResponse = session.get(busListUpUrl, cookies=cookie, headers=header)
+            if busUpResponse.status_code == 200:
+                upData = busUpResponse.json()
+                for data in upData['data']['busList'] :
+                    # 등교 버스 시간 설정
+                    if data['operateTime'] == upEntry.get():
+                        upBusSeq = (data['busSeq'])
+                        print(upBusSeq)
+            else:
+                print("등교 리스트 가져오기 실패~")
+        else:
+            print('로그인 실패! 인증 토큰이 없습니다.')
+        # 하교 버스 데이터
+        try:
+            downReserveData = {
+                "busSeq": downBusSeq,  # 버스번호
+                "lineSeq": "27",  # 버스노선 - 노원등교: 28 / 노원하교: 27
+                "stopSeq": 77,  # 하차위치 - 노원등교: 80 / 노원하교: 77
+                "seatNo": int(downSeatEntry.get())  # 좌석번호
+            }
+        except NameError:
+            pass
+        # 등교 버스 데이터
+        try :
+            upReserveData = {
+                # "busSeq": upBusSeq,  # 버스번호
+                "busSeq": 18222,
+                "lineSeq": "28",  # 버스노선 - 노원등교: 28 / 노원하교: 27
+                "stopSeq": 80,  # 하차위치 - 노원등교: 80 / 노원하교: 77
+                "seatNo": int(upSeatEntry.get()) # 좌석번호
+            }
+        except NameError:
+            pass
+        # 등교 버스 예약 ㄱㄱ
+        try :
+            busUpReserve = session.post(reserveUrl, cookies=cookie, headers=header, json=upReserveData)
+        except NameError:
+            pass
+        # 하교 버스 예약 ㄱㄱ
+        try:
+            busDownReserve = session.post(reserveUrl, cookies=cookie, headers=header, json=downReserveData)
+        except NameError:
+            pass
+        print("ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
+        print("result 값이 OK면 성공")
+        try:
+            print("등교 내역 = " + str(busUpReserve.json()))
+        except NameError:
+            pass
+        try:
+            print("하교 내역 = " + str(busDownReserve.json()))
+        except NameError:
+            pass
+
+
+    else :
+        print("로그인 실패")
+        print(response.text)
+
+if __name__ == "__main__" :
+    window = Tk()
+    window.title("성적확인")
+    window.geometry("800x600")
+    window.resizable(height=False, width=False)
+
+    idLabel = Label(window, text="ID", font=14, height=2) #id라벨
+    pwLabel = Label(window, text="PW", font=14, height=2) #pw라벨
+    upLabel = Label(window, text="등교시간", font=14, height=2)  # 등교 라벨
+    downLabel = Label(window, text="하교시간", font=14, height=2)  # 하교 라벨
+    upSeatLabel = Label(window, text="등교좌석번호", font=14, height=2)  # 하교 라벨
+    downSeatLabel = Label(window, text="하교좌석번호", font=14, height=2)  # 하교 라벨
+    text1 = Label(window, text="※ 등교시간 / 하교시간은 15:30, 11:30 과 같은 정확히 형태로 입력", font=10, height=1)  # text
+    text2 = Label(window, text="☆실★패☆해★도☆책★임☆안★짐☆", font=10,height=1)
+    idEntry = Entry() # id입력창
+    pwEntry = Entry() # pw입력창
+    upEntry = Entry() # 등교시간 입력창
+    downEntry = Entry() # 하교시간 입력창
+    upSeatEntry = Entry() # 등교좌석번호
+    downSeatEntry = Entry() # 하교 좌석번호
+    runBtn = Button(window, text="실행", height=3, width=10, command=run) # 실행버튼
+
+    idLabel.grid(column=0, row=0)
+    pwLabel.grid(column=0, row=1)
+    idEntry.grid(column=1, row=0)
+    pwEntry.grid(column=1, row=1)
+    upLabel.grid(column=0, row=2)
+    downLabel.grid(column=0, row=3)
+    upEntry.grid(column=1, row=2)
+    downEntry.grid(column=1, row=3)
+    upSeatLabel.grid(column=0, row=4)
+    downSeatLabel.grid(column=0, row=5)
+    upSeatEntry.grid(column=1, row=4)
+    downSeatEntry.grid(column=1, row=5)
+
+
+    text1.place(x=100, y=400)
+    text2.place(x=200, y=450)
+    runBtn.place(x=350, y=500)
+
+    window.mainloop()
+
+
+
+
