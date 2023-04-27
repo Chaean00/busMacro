@@ -20,5 +20,41 @@ authorization, cookie값을 포함해서 보냈더니 성공!!
 
 +
 파이썬에서 내가 만든 코드를 실행파일(.exe)로 만드려면 여러가지 모듈이 있지만 pyinstaller라는 모듈을 사용해서 만들 수 있음
-pyinstaller --onefile --hidden-import=requests main.py
+pyinstaller --onefile --hidden-import=requests --hidden-import=threading --hidden-import=tkinter --hidden-import=time --name=셔틀버스ver3 --icon=bus.ico  main.py
 --hidden-import는 포함 시켜야하는 외부라이브러리의 모듈명을 명시
+--onfile은 하나의 실행파일로 묶는 옵션
+--name은 이름
+--icon은 아이콘 설정 - 확장자는 .ico 파일만 가능
+
+셀레니움 - 동적페이지에서 효율적이며 속도는 느린편
+requests / bs4 - 정적페이지에서 효율적이고 동적페이지 크롤링에 어려움을 느낌 / requests는 http통신을 하기때문에 속도가 빠른편
+
+
+2023_04_25
+현재 시간을 비교해서 10시가 되면 코드를 실행시키도록 하려는 생각이였는데 1초마다 비교를 계속하는 것은
+컴퓨터 자원을 많이 잡아먹을 것 같다는 생각을 했다. 그러던 와중
+파이썬의 schedule, apscheduler이라는 라이브러리를 찾음!
+이 라이브러리를 통해 특정 시간에 함수를 실행시킬 수 있을 것 같다. - 배치 프로그램의 개념?
+
+2023_04_26
+'''
+def checkAt22() :
+    now = time.localtime()
+    if now.tm_hour >= 15:
+        run()
+    else:
+        # 22시 - 현재 시간을 하여 변수에 담고 sleep을 통해 기다린뒤 실행
+        remainingSeconds = (15 - now.tm_hour) * 3600 - now.tm_min * 60 - now.tm_sec
+        time.sleep(remainingSeconds)
+        run()
+'''
+배치 프로그램의 개념을 현재시간에서 22시까지 걸리는 시간을 time모듈의 sleep을 통해 기다리려고 시도해봄
+ㄴ 근데 시간이 되기전에 실행시켜 else문에 들어갔더니 프로그램이 응답없음 이라고 나옴
+    ㄴ 검색해보니 별도의 스레드에서 실행시키는 것이 해결책
+    '''
+    def excuteThread():
+    thread = threading.Thread(target=checkAt22)
+    thread.start()
+    '''
+    ㄴ 스레드 생성하여 실행하는 코드인데 메인 스레드(프로그램)을 종료해도 프로그램이 제대로 안꺼지더라고?? -> 백그라운드에서 계속 돌고있기때문
+    만약 메인 스레드를 종료할때 같이 종료되기를 원한다면 '''thread.setDaemon(True)''' 코드를 추가해주면됨.
