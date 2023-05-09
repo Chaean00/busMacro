@@ -63,22 +63,30 @@ def run() :
             print('로그인 실패! 인증 토큰이 없습니다.')
 
         # 하교 버스 데이터
+        # 노원 lineSeq - 27 / stopSeq - 77
+        # 마들 line Seq - 27 / stopSeq - 78
+        # 수락산역 lineSeq - 27 / stopSeq - 79
         try:
             downReserveData = {
                 "busSeq": downBusSeq,  # 버스번호
-                "lineSeq": "27",  # 버스노선 - 노원등교: 28 / 노원하교: 27
-                "stopSeq": 77,  # 하차위치 - 노원등교: 80 / 노원하교: 77
+                "lineSeq": "27",  # 버스노선노원하교: 27 / 하계등교: 33
+                "stopSeq": 77,  # 하차위치노원하교: 77 / 하계등교 : ??
                 "seatNo": int(downSeatEntry.get())  # 좌석번호
             }
         except NameError:
             pass
 
         # 등교 버스 데이터
+        # 태릉 lineSeq - 32 / stopSeq - 112
+        # 중화 lineSeq - 31 / stopSeq - 106
+        # 노원 lineSeq - 28 / stopSeq - 80
+        # 하계 lineSeq - 33 / stopSeq - 113
+        # 등교 위치가 변경될 경우 busListUpUrl의 맨 마지막 lineGroupSeq=28의 숫자도 lineSeq값으로 변경해야댐
         try :
             upReserveData = {
-                "busSeq": upBusSeq,  # 버스번호
-                "lineSeq": "28",  # 버스노선 - 노원등교: 28 / 노원하교: 27
-                "stopSeq": 80,  # 하차위치 - 노원등교: 80 / 노원하교: 77
+                "busSeq": upBusSeq,
+                "lineSeq": "28",
+                "stopSeq": 80,
                 "seatNo": int(upSeatEntry.get()) # 좌석번호
             }
         except NameError:
@@ -158,10 +166,10 @@ if __name__ == "__main__" :
     downSeatLabel = Label(window, text="하교좌석번호", font=fonts)  # 하교 라벨
     downSeatLabel.grid(column=0, row=5)
 
-    upList = Label(window, text="등교\n08:00\n08:10\n08:20\n08:30\n08:40\n08:50\n09:00\n09:20\n09:40\n09:50\n10:00\n10:10\n10:20\n10:40\n11:00\n11:20\n11:40\n12:00\n12:20")
+    upList = Label(window, text="등교\n07:50\n08:00\n08:10\n08:20\n08:30\n08:40\n08:50\n09:00\n09:10\n09:20\n09:30\n09:40\n09:50\n10:00\n10:10\n10:20\n10:30\n10:40\n10:50\n11:00\n11:10\n11:20\n11:30\n11:40\n11:50\n12:00\n12:20\n12:40")
     upList.place(x=600, y=10)
 
-    downList = Label(window, text="하교\n09:20\n09:40\n10:00\n10:20\n10:40\n11:00\n11:20\n11:40\n12:30\n13:00\n13:30\n14:00\n14:30\n15:00\n15:10\n15:20\n15:30\n16:00\n16:30\n17:00\n17:10\n17:20\n17:30\n18:00\n18:30\n19:00")
+    downList = Label(window, text="하교\n09:10\n09:20\n09:30\n09:40\n09:50\n10:00\n10:10\n10:20\n10:30\n10:40\n10:50\n11:00\n11:20\n11:40\n12:000\n13:00\n13:20\n13:40\n14:00\n14:20\n14:40\n15:00\n15:10\n15:20\n15:30\n15:40\n16:00\n16:30\n17:00\n17:10\n17:20\n17:30\n18:00\n18:30\n19:00")
     downList.place(x=650, y=10)
 
     seatList = Label(window, text="운전석\t\t\n1 2\t3 4\n5 6\t7 8\n9 10\t11 12\n13 14\t15 16\n17 18\t19 20\n21 21\t23 24\n25 26\t27 28\n29 30\t31 32\n33 34\t35 36\n37 38\t39 40\n\n가끔 오른쪽이\n1일때도 있음")
